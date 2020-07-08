@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "canvas": "^2.6.1",
-    "node-gles": "^0.0.17",
+    "node-gles-prebuilt": "^0.0.18",
     "node-libpng": "^0.2.16"
   }
 }

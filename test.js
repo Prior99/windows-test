@@ -1,6 +1,7 @@
 const { createCanvas, createImageData } = require("canvas");
+const { encode } = require("node-libpng");
 const { writeFileSync } = require("fs");
-const { createWebGLRenderingContext } = require("node-gles");
+const { createWebGLRenderingContext } = require("node-gles-prebuilt");
 
 const width = 320;
 const height = 240;
@@ -29,9 +30,16 @@ function createGlCanvas(gl) {
     return canvas;
 }
 
-function writePng(canvas) {
+function writeCanvasPng(canvas) {
     const buffer = canvas.toBuffer("image/png");
-    writeFileSync("test.png", buffer);
+    writeFileSync("canvas.png", buffer);
+}
+
+function writeGlPng(gl) {
+    const pixels = new Uint32Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_INT, pixels);
+    const raw = Buffer.from(pixels);
+    writeFileSync("gl.png", encode(raw, { width, height }));
 }
 
 
@@ -41,10 +49,8 @@ const canvas = createGlCanvas(gl);
 const fragmentShader = `
     precision mediump float;
 
-    varying vec2 textureCoords;
-
     void main() {
-        gl_FragColor = vec4(1, 1, 0, 0);
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
 `;
 
@@ -53,11 +59,8 @@ const vertexShader = `
 
     attribute vec2 vertexPosition;
 
-    varying vec2 textureCoords;
-
     void main() {
-        textureCoords = vertexPosition;
-        gl_Position = vec4(vertexPosition, 0.0, 1.0);
+        gl_Position = vec4(vertexPosition, 0.0, 0.0);
     }
 `;
 
@@ -71,7 +74,6 @@ function compileShader(gl, type, source) {
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         const log = gl.getShaderInfoLog(shader);
         console.error(log);
-        logger.error(log);
         gl.deleteShader(shader);
         throw new Error("Unable to compile shader.");
     }
@@ -81,8 +83,8 @@ function compileShader(gl, type, source) {
 gl.disable(gl.DEPTH_TEST);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-gl.viewport(0, 0, width, height);
-gl.clearColor(255, 255, 0, 255);
+gl.viewport(0, 0, 320, 240);
+gl.clearColor(0, 0, 0, 255);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
 const program = gl.createProgram();
@@ -92,14 +94,15 @@ if (!program) {
 gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShader));
 gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader));
 gl.linkProgram(program);
+gl.useProgram(program);
 const vertexPosition = gl.getAttribLocation(program, "vertexPosition")
 
-// const vbo = gl.createBuffer();
-// gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-// gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, -1, -1, 1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
-// gl.useProgram(program);
-// gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-// gl.enableVertexAttribArray(vertexPosition);
-// gl.drawArrays(gl.TRIANGLES, 0, 6);
+const vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, -1, -1, 1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
 
-writePng(canvas);
+gl.enableVertexAttribArray(vertexPosition);
+gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
+gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+writeGlPng(gl);
