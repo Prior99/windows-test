@@ -94,12 +94,12 @@ gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader));
 gl.linkProgram(program);
 const vertexPosition = gl.getAttribLocation(program, "vertexPosition")
 
-const vbo = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, -1, -1, 1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
-gl.useProgram(program);
-gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-gl.enableVertexAttribArray(vertexPosition);
-gl.drawArrays(gl.TRIANGLES, 0, 6);
+// const vbo = gl.createBuffer();
+// gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+// gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, -1, -1, 1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
+// gl.useProgram(program);
+// gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+// gl.enableVertexAttribArray(vertexPosition);
+// gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 writePng(canvas);
